@@ -34,27 +34,28 @@ public class DiceService {
 
 
     // create dice in the database
-    public ResponseEntity<?> createDice(DiceModel dice) {
+    public DiceModel createDice(DiceModel dice) {
         int validSize = dice.getDiceSize();
         if (validSize >= ServiceConstants.MINIMUM_DICE_SIZE &&
                 validSize <= ServiceConstants.MAXIMUM_DICE_SIZE) {
-            diceRepository.save(dice);
-            return ResponseEntity.ok(dice);
+             diceRepository.save(dice);
+             return dice;
         } else {
-            return ResponseEntity.badRequest().build();
+            return null;
         }
     }
 
 
     // shows the specific information of the id that comes in the parameter
-    public ResponseEntity<?> getById(Integer diceId) {
+    public DiceModel getById(Integer diceId) {
 
         Optional<DiceModel> optionalDice = diceRepository.findById(diceId);
         if (optionalDice.isPresent()) {
-            DiceModel diceModel = optionalDice.get();
-            return ResponseEntity.ok(diceModel);
-        } else return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            DiceModel diceModel;
+            diceModel = optionalDice.get();
+            return diceModel;
 
+        } else return null;
     }
 
 

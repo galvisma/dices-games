@@ -91,14 +91,11 @@ class DiceServiceTest {
 
         // ACT
         when(diceRepository.save(validDice)).thenReturn(validDice);
-        ResponseEntity<?> response = diceService.createDice(validDice);
+        DiceModel createdDice = diceService.createDice(validDice);
 
         // ASSERT
         // Verify that the service method returns the expected result
-        assertThat(response).isNotNull();
-
-        // Verify that the response is OK and contains the object dice
-        assertEquals(ResponseEntity.ok(validDice), response);
+        assertThat(createdDice).isNotNull();
 
         // Verify that the diceRepository.save() method was called with the inputDice
         verify(diceRepository, times(1)).save(validDice);
@@ -113,15 +110,14 @@ class DiceServiceTest {
         invalidDice.setDiceSize(TestServiceConstants.DEFAULT_DICE_INVALID_SIZE);
 
         // ACT
-        ResponseEntity<?> response = diceService.createDice(invalidDice);
+        DiceModel createdDice = diceService.createDice(invalidDice);
 
         // ASSERT
         // validates that the "save" method of the repository was not called.
         verify(diceRepository, never()).save(invalidDice);
 
         // validates that the error message is generated
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertNotNull(response);
+        assertNull(createdDice);
 
     }
 
@@ -139,14 +135,12 @@ class DiceServiceTest {
         when(diceRepository.findById(diceId)).thenReturn(Optional.of(retrieveDice));
 
         // ACT
-        ResponseEntity<?> result = diceService.getById(diceId);
-        DiceModel responseDice = (DiceModel) result.getBody();
+        DiceModel obtainedDice = diceService.getById(diceId);
 
         // ASSERT
         verify(diceRepository).findById(diceId);
-        assertEquals(HttpStatus.OK, result.getStatusCode());
-        assertEquals(diceId, responseDice.getDiceId());
-        assertEquals(TestServiceConstants.DEFAULT_DICE_SIZE1, responseDice.getDiceSize());
+        assertEquals(diceId, obtainedDice.getDiceId());
+        assertEquals(TestServiceConstants.DEFAULT_DICE_SIZE1, obtainedDice.getDiceSize());
 
     }
 
@@ -160,15 +154,12 @@ class DiceServiceTest {
         when(diceRepository.findById(diceId)).thenReturn(Optional.empty());
 
         // ACT
-        ResponseEntity<?> result = diceService.getById(diceId);
+        DiceModel obtainedDice = diceService.getById(diceId);
 
         // ASSERT
         // Verify that the service method returns the expected result
         verify(diceRepository).findById(diceId);
-        assertEquals(HttpStatus.NOT_FOUND, result.getStatusCode());
         verify(diceRepository, times(1)).findById(diceId);
-
-
 
     }
 

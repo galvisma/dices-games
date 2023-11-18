@@ -15,7 +15,7 @@ import java.util.*;
 
 public class DiceController {
     @Autowired
-    DiceService diceService;
+    private final DiceService diceService;
 
     public DiceController(DiceService diceService) {
         this.diceService = diceService;
@@ -45,10 +45,10 @@ public class DiceController {
 
     @PostMapping
     public ResponseEntity<?> saveDice(@RequestBody DiceModel dice) {
-        ResponseEntity<?> response = diceService.createDice(dice);
+        DiceModel createdDice = diceService.createDice(dice);
 
-        if (response.getStatusCode() == HttpStatus.OK) {
-            return response;
+        if (createdDice != null) {
+            return ResponseEntity.ok(createdDice);
         } else {
             String message = ControllerConstants.ERROR_MESSAGE_3;
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
@@ -60,11 +60,11 @@ public class DiceController {
     @ResponseBody
     public ResponseEntity<?> getDiceById(@PathVariable Integer id) {
 
-        ResponseEntity<?> response = diceService.getById(id);
+        DiceModel obtainedDice = diceService.getById(id);
 
-        if (response.getStatusCode() == HttpStatus.OK) {
+        if (obtainedDice != null) {
             //Object responseBody = response.getBody();
-            return response;
+            return ResponseEntity.ok(obtainedDice);
         } else {
             String message = ControllerConstants.ERROR_MESSAGE_2 + id;
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(message);
