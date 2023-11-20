@@ -1,26 +1,23 @@
 package com.example.dices.models;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.util.Optional;
 
 public class JsonModel {
 
     public int id;
 
-    public int roll;
+    public Optional<Integer> roll;
 
     public int getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public JsonModel(int id, Optional<Integer> roll) {
         this.id = id;
-    }
-
-    public void setRoll(int roll) {
         this.roll = roll;
     }
 
-    public int getRoll() {
+    public Optional<Integer> getRoll() {
         return roll;
     }
 

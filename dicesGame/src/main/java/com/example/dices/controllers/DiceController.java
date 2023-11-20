@@ -22,9 +22,10 @@ public class DiceController {
     }
 
     public static class ControllerConstants {
-        public static final String ERROR_MESSAGE_1 = "There is no information to display";
-        public static final String ERROR_MESSAGE_2 = "Dice not found with ID: ";
-        public static final String ERROR_MESSAGE_3 = "The dice size must be between 1 and 1000.";
+        public static final String ERROR_NO_DATA = "There is no information to display";
+        public static final String ERROR_NOT_FOUND = "Dice not found with ID: ";
+        public static final String ERROR_INVALID_SIZE = "The dice size must be between 1 and 1000.";
+        public static final String SUCCESSFUL_DELETED = "Successfully deleted dice with Id: ";
     }
 
 
@@ -34,7 +35,7 @@ public class DiceController {
         List<DiceModel> diceList = diceService.getDices();
 
         if (diceList.isEmpty()) {
-            String message = ControllerConstants.ERROR_MESSAGE_1;
+            String message = ControllerConstants.ERROR_NO_DATA;
             return ResponseEntity.status(HttpStatus.OK).body(message);
 
         } else {
@@ -50,7 +51,7 @@ public class DiceController {
         if (createdDice != null) {
             return ResponseEntity.ok(createdDice);
         } else {
-            String message = ControllerConstants.ERROR_MESSAGE_3;
+            String message = ControllerConstants.ERROR_INVALID_SIZE;
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
         }
     }
@@ -63,10 +64,9 @@ public class DiceController {
         DiceModel obtainedDice = diceService.getById(id);
 
         if (obtainedDice != null) {
-            //Object responseBody = response.getBody();
             return ResponseEntity.ok(obtainedDice);
         } else {
-            String message = ControllerConstants.ERROR_MESSAGE_2 + id;
+            String message = ControllerConstants.ERROR_NOT_FOUND + id;
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(message);
         }
     }
@@ -75,24 +75,26 @@ public class DiceController {
     @PostMapping(path = "/{id}/rolls")
     @ResponseBody
     public ResponseEntity<?> calculateRandomNumber(@PathVariable Integer id) {
-        int roll = diceService.rollDice(id);
+        Optional<Integer> roll = diceService.rollDice(id);
 
-        if (roll == 0) {
-            String errorMessage = ControllerConstants.ERROR_MESSAGE_2 + id;
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorMessage);
-        } else {
-            JsonModel jsonModel = new JsonModel();
-            jsonModel.setId(id);
-            jsonModel.setRoll(roll);
+        if (roll.isPresent()) {
+            JsonModel jsonModel = new JsonModel(id, roll);
             return ResponseEntity.ok(jsonModel);
+
+        } else {
+            String errorMessage = ControllerConstants.ERROR_NOT_FOUND + id;
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorMessage);
         }
     }
 
 
     @DeleteMapping(path = "/{id}")
-    public String deleteDiceById(@PathVariable("id") Integer id) {
-        boolean result = this.diceService.deleteDice(id);
-        return null;
+    public ResponseEntity<?> deleteDiceById(@PathVariable("id") Integer id) {
+        if (diceService.deleteDice(id)) {
+            return ResponseEntity.ok(ControllerConstants.SUCCESSFUL_DELETED + id);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ControllerConstants.ERROR_NOT_FOUND + id);
+        }
     }
 
 }

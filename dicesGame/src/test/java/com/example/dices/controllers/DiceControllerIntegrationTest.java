@@ -19,6 +19,9 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
+
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -41,13 +44,14 @@ class DiceControllerIntegrationTest {
     public static class TestConstants {
         public static final int DEFAULT_DICE_ID1 = 1;
         public static final int DEFAULT_DICE_SIZE1 = 6;
-        public static final int DEFAULT_DICE_ID2 = 5;
+        public static final int DEFAULT_DICE_ID2 = 2;
         public static final int DEFAULT_DICE_SIZE2 = 9;
         public static final int DEFAULT_DICE_NOT_EXIST = 5;
         public static final int DEFAULT_DICE_INVALID_SIZE = 1001;
-        public static final String ERROR_MESSAGE_1 = "There is no information to display";
-        public static final String ERROR_MESSAGE_2 = "Dice not found with ID: ";
-        public static final String ERROR_MESSAGE_3 = "The dice size must be between 1 and 1000.";
+        public static final String ERROR_NO_DATA = "There is no information to display";
+        public static final String ERROR_NOT_FOUND = "Dice not found with ID: ";
+        public static final String ERROR_INVALID_SIZE = "The dice size must be between 1 and 1000.";
+        public static final String SUCCESSFUL_DELETED = "Successfully deleted dice with Id: ";
 
     }
 
@@ -58,8 +62,6 @@ class DiceControllerIntegrationTest {
         DiceModel diceModel = new DiceModel();
         diceModel.setDiceId(TestConstants.DEFAULT_DICE_ID1);
         diceModel.setDiceSize(TestConstants.DEFAULT_DICE_SIZE1);
-        diceModel.setDiceId(TestConstants.DEFAULT_DICE_ID2);
-        diceModel.setDiceSize(TestConstants.DEFAULT_DICE_SIZE2);
         diceRepository.save(diceModel);
     }
 
@@ -71,7 +73,7 @@ class DiceControllerIntegrationTest {
 
 
     @Test
-    void testGetDicesNoEmpty() throws Exception {
+    void testGetDices_diceExistsInDatabase_returnDice() throws Exception {
         // makes the GET request to the /api/v1/dices endpoint
         // Verify that the response has a status 200 (OK)
         MvcResult result = mockMvc.perform(get("/api/v1/dices"))
@@ -81,21 +83,24 @@ class DiceControllerIntegrationTest {
         // Get the response as a JSON string and perform the necessary checks
         String contentType = result.getResponse().getContentType();
         assertEquals("application/json", contentType);
+
+        String responseBody = result.getResponse().getContentAsString();
+        assertFalse(responseBody.isEmpty());        
     }
 
 
     @Test
-    void testGetDicesEmpty() throws Exception {
+    void testGetDices_diceNotExistsInDatabase_returnNoData() throws Exception {
         // Make the GET request to the /api/v1/dices endpoint
         diceRepository.deleteAll();
         mockMvc.perform(get("/api/v1/dices"))
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.content().string(TestConstants.ERROR_MESSAGE_1));
+                .andExpect(MockMvcResultMatchers.content().string(TestConstants.ERROR_NO_DATA));
     }
 
 
     @Test
-    void testSaveDiceWithValidSize() throws Exception {
+    void testSaveDice_diceWithValidSize_returnSaveDice() throws Exception {
 
         // create a DiceModel object to send in the POST request
         DiceModel diceModel = new DiceModel();
@@ -126,7 +131,7 @@ class DiceControllerIntegrationTest {
 
 
     @Test
-    void testSaveDiceWithInvalidSize() throws Exception {
+    void testSaveDice_diceWithInvalidSize_returnInvalidSize() throws Exception {
 
         // create a DiceModel object to send in the POST request
         DiceModel invalidDiceSize = new DiceModel();
@@ -146,11 +151,11 @@ class DiceControllerIntegrationTest {
         String responseContent = result.getResponse().getContentAsString();
 
         // display message error
-        assertEquals(TestConstants.ERROR_MESSAGE_3, responseContent);
+        assertEquals(TestConstants.ERROR_INVALID_SIZE, responseContent);
     }
 
     @Test
-    public void testGetDiceByIdExist() throws Exception {
+    public void testGetDiceById_diceExistsInDatabase_returnDice() throws Exception {
 
         // ARRANGE
         DiceModel diceExist = new DiceModel();
@@ -178,7 +183,7 @@ class DiceControllerIntegrationTest {
 
 
     @Test
-    public void testGetDiceByIdNotExist() throws Exception {
+    public void testGetDiceById_diceNotExistsInDatabase_returnNotFound() throws Exception {
 
         // ARRANGE
         // makes the GET request to the endpoint /api/v1/dices/{id}
@@ -194,13 +199,13 @@ class DiceControllerIntegrationTest {
 
         // ASSERT
         assertEquals(404, result.getResponse().getStatus());
-        assertEquals((TestConstants.ERROR_MESSAGE_2 + idToTest), responseBody);
+        assertEquals((TestConstants.ERROR_NOT_FOUND + idToTest), responseBody);
 
     }
 
 
     @Test
-    void testCalculateRandomNumberWithDiceIsPresent() throws Exception {
+    void testCalculateRandomNumber_diceIsPresentInDatabase_returnRandomNumber() throws Exception {
 
         // makes the POST request to the endpoint /api/v1/dices/{id}/rolls
         // ARRANGE
@@ -217,17 +222,19 @@ class DiceControllerIntegrationTest {
         // Get the response as a DiceModel object
         String responseBody = result.getResponse().getContentAsString();
         JsonModel responseDice = objectMapper.readValue(responseBody, JsonModel.class);
-        int roll = responseDice.getRoll();
+        Optional<Integer> rollOptional = responseDice.getRoll();
+        int roll = rollOptional.get();
 
         // ASSERTS
         assertNotNull(responseDice); // verify that the response is not null and that it has an assigned ID
         assertEquals(idToRoll, responseDice.getId());
+        assertTrue(rollOptional.isPresent());
         assertTrue(roll > 0);
 
     }
 
     @Test
-    void testCalculateRandomNumberWithDiceIsNotPresent() throws Exception {
+    void testCalculateRandomNumber_diceIsNotPresentInDatabase_returnDiceNotFound() throws Exception {
 
         // makes the POST request to the endpoint /api/v1/dices/{id}/rolls
         // ARRANGE
@@ -244,23 +251,51 @@ class DiceControllerIntegrationTest {
 
         // ASSERT
         if (result.getResponse().getStatus() == HttpStatus.NOT_FOUND.value())
-            assertEquals((TestConstants.ERROR_MESSAGE_2 + idToRoll), responseBody);
+            assertEquals((TestConstants.ERROR_NOT_FOUND + idToRoll), responseBody);
 
     }
 
 
     @Test
-    void testDeleteDiceById() throws Exception {
+    void testDeleteDice_diceIsPresentInDatabase_returnDiceSuccessfulDeleted() throws Exception {
         // make a DELETE request to the endpoint /api/v1/dices/{id}
-        int diceIdToDelete = 1; // ID to delete
+        int diceIdToDelete = TestConstants.DEFAULT_DICE_ID1;
 
-        mockMvc.perform(MockMvcRequestBuilders
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders
                         .delete("/api/v1/dices/{id}", diceIdToDelete)
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk()); // Verify HTTP 200 OK
+                .andExpect(status().isOk())  // Verify HTTP 200 OK
+                .andReturn();
+
+        // ACT
+        String responseBody = result.getResponse().getContentAsString();
+
+        // Verify that ID deleted not exist.
+        assertFalse(diceRepository.findById(diceIdToDelete).isPresent());
+        assertEquals((TestConstants.SUCCESSFUL_DELETED + diceIdToDelete), responseBody);
+
+    }
+
+
+    @Test
+    void testDeleteDice_diceIsNotPresentInDatabase_returnDiceNotFound() throws Exception {
+        // make a DELETE request to the endpoint /api/v1/dices/{id}
+        int diceIdToDelete = TestConstants.DEFAULT_DICE_NOT_EXIST;
+
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders
+                        .delete("/api/v1/dices/{id}", diceIdToDelete)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound()) // Verify HTTP 404 not found
+                .andReturn();
+
+        // ACT
+        String responseBody = result.getResponse().getContentAsString();
+
 
         // Verify that ID deleted not exist.
         assertTrue(diceRepository.findById(diceIdToDelete).isEmpty());
+        assertEquals((TestConstants.ERROR_NOT_FOUND + diceIdToDelete), responseBody);
 
     }
+
 }

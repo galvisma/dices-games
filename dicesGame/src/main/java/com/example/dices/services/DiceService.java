@@ -3,11 +3,9 @@ package com.example.dices.services;
 import com.example.dices.models.DiceModel;
 import com.example.dices.repositories.IDiceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 
@@ -23,13 +21,11 @@ public class DiceService {
     public static class ServiceConstants {
         public static final int MINIMUM_DICE_SIZE = 1;
         public static final int MAXIMUM_DICE_SIZE = 1000;
-
     }
 
-
     // show list of created dices
-    public ArrayList<DiceModel> getDices() {
-        return (ArrayList<DiceModel>) diceRepository.findAll();
+    public List<DiceModel> getDices() {
+        return (List<DiceModel>) diceRepository.findAll();
     }
 
 
@@ -38,8 +34,8 @@ public class DiceService {
         int validSize = dice.getDiceSize();
         if (validSize >= ServiceConstants.MINIMUM_DICE_SIZE &&
                 validSize <= ServiceConstants.MAXIMUM_DICE_SIZE) {
-             diceRepository.save(dice);
-             return dice;
+            diceRepository.save(dice);
+            return dice;
         } else {
             return null;
         }
@@ -61,26 +57,29 @@ public class DiceService {
 
     // delete the record of the id that enters by parameter
     public Boolean deleteDice(Integer id) {
-        try {
+        Optional<DiceModel> optionalDice = diceRepository.findById(id);
+
+        if (optionalDice.isPresent()) {
             diceRepository.deleteById(id);
             return true;
-        } catch (Exception e) {
+        } else {
             return false;
         }
     }
 
 
     // roll dice
-    public int rollDice(Integer id) {
+    public Optional<Integer> rollDice(Integer id) {
         Optional<DiceModel> optionalDice = diceRepository.findById(id);
 
         if (optionalDice.isPresent()) {
             DiceModel diceModel = optionalDice.get();
             int diceSize = diceModel.getDiceSize();
             Random random = new Random();
-            return random.nextInt(diceSize) + 1;
+            return Optional.of(random.nextInt(diceSize) + 1);
+
         } else {
-            return 0;
+            return Optional.empty();
         }
     }
 

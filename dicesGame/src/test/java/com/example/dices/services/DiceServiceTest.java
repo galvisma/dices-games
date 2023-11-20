@@ -10,8 +10,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -168,13 +167,16 @@ class DiceServiceTest {
         // ARRANGE
         int idToDelete = TestServiceConstants.DEFAULT_DICE_ID1;
         doNothing().when(diceRepository).deleteById(idToDelete);
+        when(diceRepository.findById(idToDelete)).thenReturn(Optional.of(new DiceModel()));
 
-        // ACT
-        Boolean result = diceService.deleteDice(idToDelete); // call the service method
+        // ACT: call the service method
+        Boolean result = diceService.deleteDice(idToDelete);
 
         // ASSERT
-        assertTrue(result);  // Verify that the service method returns true successful deletion
+        // Verify that the service method returns true successful deletion
+        assertTrue(result);
         verify(diceRepository).deleteById(idToDelete);
+        verify(diceRepository).findById(idToDelete);
     }
 
 
@@ -182,16 +184,15 @@ class DiceServiceTest {
     void testDeleteDiceNotExist() {
         // ARRANGE
         int idToDelete = TestServiceConstants.DEFAULT_DICE_NOT_EXIST;
-        doThrow(new RuntimeException())
-                .when(diceRepository).deleteById(idToDelete);
+        when(diceRepository.findById(idToDelete)).thenReturn(Optional.empty());
+
 
         // ACT
         Boolean result = diceService.deleteDice(idToDelete); // call the service method
 
         // ASSERT
-        assertFalse(result);  // Verify that the service method returns true successful deletion
-        verify(diceRepository).deleteById(idToDelete);
-        verify(diceRepository, times(1)).deleteById(idToDelete);
+        assertFalse(result);
+
     }
 
 
@@ -207,14 +208,16 @@ class DiceServiceTest {
         when(diceRepository.findById(idToRoll)).thenReturn(Optional.of(rollTheDice));
 
         // ACT
-        int rollResult = diceService.rollDice(idToRoll);  //Call the service method
+        Optional<Integer> rollResultOptional = diceService.rollDice(idToRoll);  //Call the service method
 
         // ASSERT
+        assertTrue(rollResultOptional.isPresent());  // Verify that the result is present
+        int rollResult = rollResultOptional.get();
+
         // Verify that the service method returns a valid roll result within the expected range
         assertTrue(rollResult >= TestServiceConstants.MINIMUM_DICE_SIZE
                 && rollResult <= rollTheDice.getDiceSize());
         verify(diceRepository).findById(idToRoll);
-
     }
 
 
@@ -227,12 +230,11 @@ class DiceServiceTest {
         when(diceRepository.findById(idToRoll)).thenReturn(Optional.empty());
 
         // ACT
-        int rollResult = diceService.rollDice(idToRoll);
+        Optional<Integer> rollResult = diceService.rollDice(idToRoll);
 
         // ASSERT
+        assertFalse(rollResult.isPresent());  // Verify that the result is not present
         verify(diceRepository).findById(idToRoll);
-        assertEquals(0, rollResult);
-
     }
 
 }
