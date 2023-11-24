@@ -32,15 +32,8 @@ public class DiceService {
 
 
     // shows the specific information of the id that comes in the parameter
-    public DiceModel getById(Integer diceId) {
-
-        Optional<DiceModel> optionalDice = diceRepository.findById(diceId);
-        if (optionalDice.isPresent()) {
-            DiceModel diceModel;
-            diceModel = optionalDice.get();
-            return diceModel;
-
-        } else return null;
+    public Optional<DiceModel> getById(Integer diceId) {
+        return diceRepository.findById(diceId);
     }
 
 

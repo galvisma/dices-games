@@ -59,9 +59,9 @@ public class DiceController {
     @ResponseBody
     public ResponseEntity<?> getDiceById(@PathVariable Integer id) {
 
-        DiceModel obtainedDice = diceService.getById(id);
+        Optional<DiceModel> obtainedDice = diceService.getById(id);
 
-        if (obtainedDice != null) {
+        if (obtainedDice.isPresent()) {
             return ResponseEntity.ok(obtainedDice);
         }
         String message = ControllerConstants.ERROR_NOT_FOUND + id;

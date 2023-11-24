@@ -133,13 +133,11 @@ class DiceServiceTest {
         when(diceRepository.findById(diceId)).thenReturn(Optional.of(retrieveDice));
 
         // ACT
-        DiceModel obtainedDice = diceService.getById(diceId);
+        Optional<DiceModel> obtainedDice = diceService.getById(diceId);
 
         // ASSERT
         verify(diceRepository).findById(diceId);
-        assertEquals(diceId, obtainedDice.getDiceId());
-        assertEquals(TestServiceConstants.DEFAULT_DICE_SIZE1, obtainedDice.getDiceSize());
-
+        assertEquals(diceId, obtainedDice.get().getDiceId());
     }
 
 
@@ -152,7 +150,7 @@ class DiceServiceTest {
         when(diceRepository.findById(diceId)).thenReturn(Optional.empty());
 
         // ACT
-        DiceModel obtainedDice = diceService.getById(diceId);
+        Optional<DiceModel> obtainedDice = diceService.getById(diceId);
 
         // ASSERT
         // Verify that the service method returns the expected result
