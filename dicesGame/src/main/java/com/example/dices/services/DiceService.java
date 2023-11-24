@@ -18,11 +18,6 @@ public class DiceService {
         this.diceRepository = diceRepository;
     }
 
-    public static class ServiceConstants {
-        public static final int MINIMUM_DICE_SIZE = 1;
-        public static final int MAXIMUM_DICE_SIZE = 1000;
-    }
-
     // show list of created dices
     public List<DiceModel> getDices() {
         return (List<DiceModel>) diceRepository.findAll();
@@ -31,14 +26,8 @@ public class DiceService {
 
     // create dice in the database
     public DiceModel createDice(DiceModel dice) {
-        int validSize = dice.getDiceSize();
-        if (validSize >= ServiceConstants.MINIMUM_DICE_SIZE &&
-                validSize <= ServiceConstants.MAXIMUM_DICE_SIZE) {
-            diceRepository.save(dice);
-            return dice;
-        } else {
-            return null;
-        }
+        diceRepository.save(dice);
+        return dice;
     }
 
 

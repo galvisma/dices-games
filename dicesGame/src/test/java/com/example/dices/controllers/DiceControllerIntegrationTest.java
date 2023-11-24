@@ -250,9 +250,8 @@ class DiceControllerIntegrationTest {
         String responseBody = result.getResponse().getContentAsString();
 
         // ASSERT
-        if (result.getResponse().getStatus() == HttpStatus.NOT_FOUND.value())
-            assertEquals((TestConstants.ERROR_NOT_FOUND + idToRoll), responseBody);
-
+        assertEquals(result.getResponse().getStatus(), HttpStatus.NOT_FOUND.value());
+        assertEquals(responseBody, TestConstants.ERROR_NOT_FOUND + idToRoll);
     }
 
 

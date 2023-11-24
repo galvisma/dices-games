@@ -51,7 +51,6 @@ class DiceServiceTest {
         public static final int DEFAULT_DICE_INVALID_SIZE = 1001;
         public static final int DEFAULT_DICE_NOT_EXIST = 5;
         public static final int MINIMUM_DICE_SIZE = 1;
-
     }
 
 
@@ -59,25 +58,25 @@ class DiceServiceTest {
     void testGetDices() {
         // ARRANGE
         // simulate loading the list
-        List<DiceModel> diceModel = new ArrayList<>();
-        diceModel.add(new DiceModel(TestServiceConstants.DEFAULT_DICE_ID1, TestServiceConstants.DEFAULT_DICE_SIZE1));
-        diceModel.add(new DiceModel(TestServiceConstants.DEFAULT_DICE_ID2, TestServiceConstants.DEFAULT_DICE_SIZE2));
-        diceModel.add(new DiceModel(TestServiceConstants.DEFAULT_DICE_ID3, TestServiceConstants.DEFAULT_DICE_SIZE3));
+        List<DiceModel> dices = new ArrayList<>();
+        dices.add(new DiceModel(TestServiceConstants.DEFAULT_DICE_ID1, TestServiceConstants.DEFAULT_DICE_SIZE1));
+        dices.add(new DiceModel(TestServiceConstants.DEFAULT_DICE_ID2, TestServiceConstants.DEFAULT_DICE_SIZE2));
+        dices.add(new DiceModel(TestServiceConstants.DEFAULT_DICE_ID3, TestServiceConstants.DEFAULT_DICE_SIZE3));
 
-        when(diceRepository.findAll()).thenReturn(diceModel);
+        when(diceRepository.findAll()).thenReturn(dices);
 
         // ACT
         List<DiceModel> result = diceRepository.findAll(); // call service
 
         // ASSERT
         // verify that the service returns the expected list
-        assertEquals(diceModel.size(), result.size());
-        assertEquals(diceModel.get(0).getDiceId(), result.get(0).getDiceId());
-        assertEquals(diceModel.get(0).getDiceSize(), result.get(0).getDiceSize());
-        assertEquals(diceModel.get(1).getDiceId(), result.get(1).getDiceId());
-        assertEquals(diceModel.get(1).getDiceSize(), result.get(1).getDiceSize());
-        assertEquals(diceModel.get(2).getDiceId(), result.get(2).getDiceId());
-        assertEquals(diceModel.get(2).getDiceSize(), result.get(2).getDiceSize());
+        assertEquals(dices.size(), result.size());
+        assertEquals(dices.get(0).getDiceId(), result.get(0).getDiceId());
+        assertEquals(dices.get(0).getDiceSize(), result.get(0).getDiceSize());
+        assertEquals(dices.get(1).getDiceId(), result.get(1).getDiceId());
+        assertEquals(dices.get(1).getDiceSize(), result.get(1).getDiceSize());
+        assertEquals(dices.get(2).getDiceId(), result.get(2).getDiceId());
+        assertEquals(dices.get(2).getDiceSize(), result.get(2).getDiceSize());
         verify(diceRepository).findAll();
     }
 
@@ -159,6 +158,7 @@ class DiceServiceTest {
         // Verify that the service method returns the expected result
         verify(diceRepository).findById(diceId);
         verify(diceRepository, times(1)).findById(diceId);
+        assertTrue(diceRepository.findById(diceId).isEmpty());
 
     }
 

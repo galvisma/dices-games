@@ -22,6 +22,8 @@ public class DiceController {
     }
 
     public static class ControllerConstants {
+        public static final int MINIMUM_DICE_SIZE = 1;
+        public static final int MAXIMUM_DICE_SIZE = 1000;
         public static final String ERROR_NO_DATA = "There is no information to display";
         public static final String ERROR_NOT_FOUND = "Dice not found with ID: ";
         public static final String ERROR_INVALID_SIZE = "The dice size must be between 1 and 1000.";
@@ -46,9 +48,10 @@ public class DiceController {
 
     @PostMapping
     public ResponseEntity<?> saveDice(@RequestBody DiceModel dice) {
-        DiceModel createdDice = diceService.createDice(dice);
-
-        if (createdDice != null) {
+        int validSize = dice.getDiceSize();
+        if (validSize >= ControllerConstants.MINIMUM_DICE_SIZE &&
+                validSize <= ControllerConstants.MAXIMUM_DICE_SIZE) {
+            DiceModel createdDice = diceService.createDice(dice);
             return ResponseEntity.ok(createdDice);
         } else {
             String message = ControllerConstants.ERROR_INVALID_SIZE;
