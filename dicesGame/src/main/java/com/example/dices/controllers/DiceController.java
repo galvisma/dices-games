@@ -39,12 +39,9 @@ public class DiceController {
         if (diceList.isEmpty()) {
             String message = ControllerConstants.ERROR_NO_DATA;
             return ResponseEntity.status(HttpStatus.OK).body(message);
-
-        } else {
-            return ResponseEntity.ok(diceList);
         }
+        return ResponseEntity.ok(diceList);
     }
-
 
     @PostMapping
     public ResponseEntity<?> saveDice(@RequestBody DiceModel dice) {
@@ -53,12 +50,10 @@ public class DiceController {
                 validSize <= ControllerConstants.MAXIMUM_DICE_SIZE) {
             DiceModel createdDice = diceService.createDice(dice);
             return ResponseEntity.ok(createdDice);
-        } else {
-            String message = ControllerConstants.ERROR_INVALID_SIZE;
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
         }
+        String message = ControllerConstants.ERROR_INVALID_SIZE;
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
     }
-
 
     @GetMapping(path = "/{id}")
     @ResponseBody
@@ -68,10 +63,9 @@ public class DiceController {
 
         if (obtainedDice != null) {
             return ResponseEntity.ok(obtainedDice);
-        } else {
-            String message = ControllerConstants.ERROR_NOT_FOUND + id;
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(message);
         }
+        String message = ControllerConstants.ERROR_NOT_FOUND + id;
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(message);
     }
 
 
@@ -83,21 +77,16 @@ public class DiceController {
         if (roll.isPresent()) {
             JsonModel jsonModel = new JsonModel(id, roll);
             return ResponseEntity.ok(jsonModel);
-
-        } else {
-            String errorMessage = ControllerConstants.ERROR_NOT_FOUND + id;
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorMessage);
         }
+        String errorMessage = ControllerConstants.ERROR_NOT_FOUND + id;
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorMessage);
     }
-
 
     @DeleteMapping(path = "/{id}")
     public ResponseEntity<?> deleteDiceById(@PathVariable("id") Integer id) {
         if (diceService.deleteDice(id)) {
             return ResponseEntity.ok(ControllerConstants.SUCCESSFUL_DELETED + id);
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ControllerConstants.ERROR_NOT_FOUND + id);
         }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ControllerConstants.ERROR_NOT_FOUND + id);
     }
-
 }
