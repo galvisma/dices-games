@@ -38,7 +38,7 @@ public class DiceController {
 
         if (diceList.isEmpty()) {
             String message = ControllerConstants.ERROR_NO_DATA;
-            return ResponseEntity.status(HttpStatus.OK).body(message);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(message);
         }
         return ResponseEntity.ok(diceList);
     }

@@ -3,6 +3,7 @@ package com.example.dices.services;
 import com.example.dices.models.DiceModel;
 import com.example.dices.repositories.IDiceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -39,14 +40,8 @@ public class DiceService {
 
     // delete the record of the id that enters by parameter
     public Boolean deleteDice(Integer id) {
-        Optional<DiceModel> optionalDice = diceRepository.findById(id);
-
-        if (optionalDice.isPresent()) {
-            diceRepository.deleteById(id);
-            return true;
-        } else {
-            return false;
-        }
+        diceRepository.deleteById(id);
+        return true;
     }
 
 

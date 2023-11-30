@@ -5,6 +5,8 @@ import com.example.dices.models.DiceModel;
 import com.example.dices.models.JsonModel;
 import com.example.dices.repositories.IDiceRepository;
 import com.example.dices.services.DiceService;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,6 +22,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -74,18 +77,35 @@ class DiceControllerIntegrationTest {
 
     @Test
     void testGetDices_diceExistsInDatabase_returnDice() throws Exception {
+        // ARRANGE
         // makes the GET request to the /api/v1/dices endpoint
         // Verify that the response has a status 200 (OK)
         MvcResult result = mockMvc.perform(get("/api/v1/dices"))
                 .andExpect(status().isOk())
                 .andReturn();
 
+        // ACT
         // Get the response as a JSON string and perform the necessary checks
         String contentType = result.getResponse().getContentType();
-        assertEquals("application/json", contentType);
 
         String responseBody = result.getResponse().getContentAsString();
-        assertFalse(responseBody.isEmpty());        
+
+        // Deserialize Json responseBody
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode jsonNode = objectMapper.readTree(responseBody);
+        // Verify size list
+        List<JsonNode> diceList = objectMapper.readValue(responseBody,
+                new TypeReference<List<JsonNode>>() {
+                });
+
+        // ASSERT
+        assertEquals("application/json", contentType);
+        assertTrue(jsonNode.isArray());
+        for (JsonNode node : jsonNode) {
+            assertTrue(node.has("diceId"));
+            assertTrue(node.has("diceSize"));
+        }
+        assertEquals(1, diceList.size());
     }
 
 
@@ -94,7 +114,7 @@ class DiceControllerIntegrationTest {
         // Make the GET request to the /api/v1/dices endpoint
         diceRepository.deleteAll();
         mockMvc.perform(get("/api/v1/dices"))
-                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
                 .andExpect(MockMvcResultMatchers.content().string(TestConstants.ERROR_NO_DATA));
     }
 
@@ -173,11 +193,11 @@ class DiceControllerIntegrationTest {
 
         String responseBody = result.getResponse().getContentAsString();
         DiceModel responseDice = objectMapper.readValue(responseBody, DiceModel.class);
-        assertEquals(idToTest, responseDice.getDiceId());
 
         // ASSERT
-        assertEquals(200, result.getResponse().getStatus());
         assertEquals(idToTest, responseDice.getDiceId());
+        assertEquals(200, result.getResponse().getStatus());
+
 
     }
 
