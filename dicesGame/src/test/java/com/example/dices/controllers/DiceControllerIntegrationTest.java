@@ -242,6 +242,7 @@ class DiceControllerIntegrationTest {
         // Get the response as a DiceModel object
         String responseBody = result.getResponse().getContentAsString();
         JsonModel responseDice = objectMapper.readValue(responseBody, JsonModel.class);
+        System.out.println("***** responceBody:" + responseBody);
         Optional<Integer> rollOptional = responseDice.getRoll();
         int roll = rollOptional.get();
 
@@ -249,7 +250,7 @@ class DiceControllerIntegrationTest {
         assertNotNull(responseDice); // verify that the response is not null and that it has an assigned ID
         assertEquals(idToRoll, responseDice.getId());
         assertTrue(rollOptional.isPresent());
-        assertTrue(roll > 0);
+        assertTrue(roll > 0 && roll <= TestConstants.DEFAULT_DICE_SIZE1);
 
     }
 
